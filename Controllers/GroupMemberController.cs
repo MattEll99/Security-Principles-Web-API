@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Security_Principles_Web_API.Dto;
 using Security_Principles_Web_API.Interfaces;
 using Security_Principles_Web_API.Models;
@@ -25,9 +26,9 @@ namespace Security_Principles_Web_API.Controllers
 
         [HttpGet]
         [ProducesResponseType(200, Type = typeof(IEnumerable<GroupMember>))]
-        public IActionResult GetAll()
+        public IActionResult GetAll(string DbContext)
         {
-            var groupmembers = _groupMemberRepository.GetAll();
+            var groupmembers = _groupMemberRepository.GetAll(DbContext);
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -37,9 +38,9 @@ namespace Security_Principles_Web_API.Controllers
 
         [HttpGet("{{groupId}}")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<GroupMember>))]
-        public IActionResult GetGroupMembersByGroupId([FromQuery] int groupId)
+        public IActionResult GetGroupMembersByGroupId([FromQuery] int groupId, string DbContext)
         {
-            var groupmembers = _groupMemberRepository.GetGroupMembersByGroupId(groupId);
+            var groupmembers = _groupMemberRepository.GetGroupMembersByGroupId(groupId, DbContext);
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -48,10 +49,10 @@ namespace Security_Principles_Web_API.Controllers
         }
 
         [HttpGet("{{securityPrincipleId}}")]
-        [ProducesResponseType(200, Type = typeof(GroupMember))]
-        public IActionResult GetGroupBySecurityPrincipleId([FromQuery] int securityPrincipleId)
+        [ProducesResponseType(200, Type = typeof(IEnumerable<GroupMember>))]
+        public IActionResult GetGroupBySecurityPrincipleId([FromQuery] int securityPrincipleId, string DbContext)
         {
-            var groupId = _groupMemberRepository.GetGroupBySecurityPrincipleId(securityPrincipleId);
+            var groupId = _groupMemberRepository.GetGroupsBySecurityPrincipleId(securityPrincipleId, DbContext);
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -63,7 +64,7 @@ namespace Security_Principles_Web_API.Controllers
         [HttpPost]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        public IActionResult CreateGroupMember([FromQuery] GroupMember groupMemberCreate)
+        public IActionResult CreateGroupMember([FromQuery] GroupMember groupMemberCreate, string DbContext)
         {
             if (groupMemberCreate == null)
                 return BadRequest(ModelState);
@@ -73,7 +74,7 @@ namespace Security_Principles_Web_API.Controllers
 
             var groupMemberMap = _mapper.Map<GroupMember>(groupMemberCreate);
 
-            if (!_groupMemberRepository.CreateGroupMember(groupMemberMap))
+            if (!_groupMemberRepository.CreateGroupMember(groupMemberMap, DbContext))
             {
                 ModelState.AddModelError("", "Something went wrong when saving");
                 return StatusCode(500, ModelState);
@@ -89,11 +90,11 @@ namespace Security_Principles_Web_API.Controllers
         [ProducesResponseType(400)]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
-        public IActionResult DeleteGroupMember([FromQuery]int groupId, [FromQuery]int securityPrincipleId)
+        public IActionResult DeleteGroupMember([FromQuery]int groupId, [FromQuery]int securityPrincipleId, string DbContext)
         {
-            var groupMemberToDelete = _groupMemberRepository.GetGroupMembersByGroupId(groupId).Where(sp => sp.securityPrincipleId == securityPrincipleId).FirstOrDefault();
+            var groupMemberToDelete = _groupMemberRepository.GetGroupMembersByGroupId(groupId, DbContext).Where(sp => sp.securityPrincipleId == securityPrincipleId).FirstOrDefault();
 
-            if (!_groupMemberRepository.DeleteGroupMember(groupMemberToDelete))
+            if (!_groupMemberRepository.DeleteGroupMember(groupMemberToDelete, DbContext))
             {
                 ModelState.AddModelError("", "Something went wrong deleting Security Principle");
             }

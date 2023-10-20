@@ -10,13 +10,21 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddScoped<ISecurityPrincipleRepository, SecurityPrincipleRepository>();
-builder.Services.AddScoped<IGroupMemberRepository, GroupMemberRepository>();    
+builder.Services.AddScoped<IGroupMemberRepository, GroupMemberRepository>();
+builder.Services.AddScoped<IvGroupMemberRepository, vGroupMembersRepository>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+//Both Connections strings
 builder.Services.AddDbContext<DataContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("SourceDbDefaultConnection"));
+    ////Only using the target!!!!!!!!!!!!!!!
+    //options.UseSqlServer(builder.Configuration.GetConnectionString("TargetDBDefaultConnection"));
+});
+builder.Services.AddDbContext<TDataContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("TargetDBDefaultConnection"));
 });
 
 var app = builder.Build();

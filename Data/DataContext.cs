@@ -8,14 +8,15 @@ namespace Security_Principles_Web_API.Data
     {
         public DataContext(DbContextOptions<DataContext> options) : base(options)
         {
-            
+
+        }
+        protected DataContext(DbContextOptions options): base(options)
+        {
         }
 
         public DbSet<GroupMember> GroupMembers { get; set; }
         public DbSet<SecurityPrinciple> SecurityPrinciples { get; set; }
         public DbSet<vGroupMembers> VGroups { get; set; }
-
-
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -30,6 +31,13 @@ namespace Security_Principles_Web_API.Data
                .Entity<vGroupMembers>()
                .ToView("vGroupMembers")
                .HasKey(t => new { t.groupId, t.memberId });
+        }
+    }
+    public class TDataContext : DataContext
+    {
+        public TDataContext(DbContextOptions<TDataContext> options) : base(options)
+        {
+
         }
     }
 }

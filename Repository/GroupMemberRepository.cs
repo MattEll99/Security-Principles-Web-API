@@ -1,51 +1,50 @@
-﻿using Security_Principles_Web_API.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using Security_Principles_Web_API.Data;
 using Security_Principles_Web_API.Interfaces;
 using Security_Principles_Web_API.Models;
 
 namespace Security_Principles_Web_API.Repository
 {
-    public class GroupMemberRepository : IGroupMemberRepository
+    public class GroupMemberRepository :RepositoryBase, IGroupMemberRepository
     {
-        private readonly DataContext _context;
-
-        public GroupMemberRepository(DataContext context)
+        public GroupMemberRepository(DataContext Scontext, TDataContext Tcontext) : base(Scontext, Tcontext)
         {
-            _context = context;            
+
         }
 
         //Get And Read
-        public ICollection<GroupMember> GetAll()
+        public ICollection<GroupMember> GetAll(string DbContext)
         {
-            return _context.GroupMembers.ToList();
+            return GetDbContext(DbContext).GroupMembers.ToList();
         }
 
-        public ICollection<GroupMember> GetGroupMembersByGroupId(int groupId)
+        public ICollection<GroupMember> GetGroupMembersByGroupId(int groupId, string DbContext)
         {
-            return _context.GroupMembers.Where(gm => gm.groupId == groupId).ToList();
+            return GetDbContext(DbContext).GroupMembers.Where(gm => gm.groupId == groupId).ToList();
         }
 
-        public GroupMember GetGroupBySecurityPrincipleId(int securityPrincipleId)
+        public ICollection<GroupMember> GetGroupsBySecurityPrincipleId(int securityPrincipleId, string DbContext)
         {
-            return _context.GroupMembers.Where(gm => gm.securityPrincipleId == securityPrincipleId).FirstOrDefault();
+            return GetDbContext(DbContext).GroupMembers.Where(gm => gm.securityPrincipleId == securityPrincipleId).ToList();
         }
 
         //Create
-        public bool CreateGroupMember(GroupMember groupMember)
+        public bool CreateGroupMember(GroupMember groupMember, string DbContext)
         {
-            _context.Add(groupMember);
-            return Save();
+            GetDbContext(DbContext).Add(groupMember);
+            return Save(DbContext);
         }
-        public bool Save()
+        public bool Save(string DbContext)
         {
-            var saved = _context.SaveChanges();
+            var saved = GetDbContext(DbContext).SaveChanges();
             return saved > 0 ? true : false;
         }
 
         //Delete
-        public bool DeleteGroupMember(GroupMember groupMember)
+        public bool DeleteGroupMember(GroupMember groupMember, string DbContext)
         {
-            _context.Remove(groupMember);
-            return Save();
+            GetDbContext(DbContext).Remove(groupMember);
+            return Save(DbContext);
         }
     }
 }

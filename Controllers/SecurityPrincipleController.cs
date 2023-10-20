@@ -20,11 +20,11 @@ namespace Security_Principles_Web_API.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet]
+        [HttpGet("GetSecurityPrinciples")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<SecurityPrinciple>))]
-        public IActionResult GetSecurityPrinciples()
+        public IActionResult GetSecurityPrinciples(string DbContext)
         {
-            var securityPrinciples = _mapper.Map<List<SecurityPrincipleDto>>(_securityPrincipleRepository.GetSecurityPrinciples());
+            var securityPrinciples = _mapper.Map<List<SecurityPrincipleDto>>(_securityPrincipleRepository.GetSecurityPrinciples(DbContext));
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -32,15 +32,15 @@ namespace Security_Principles_Web_API.Controllers
             return Ok(securityPrinciples);
         }
 
-        [HttpGet("{{id}}")]
+        [HttpGet("GetSecurityPrincipleById")]
         [ProducesResponseType(200, Type = typeof(SecurityPrinciple))]
         [ProducesResponseType(400)]
-        public IActionResult GetSecurityPrincipleById([FromQuery] int id)
+        public IActionResult GetSecurityPrincipleById([FromQuery] int id, string DbContext)
         {
-            if (!_securityPrincipleRepository.SecurityPrincipleExists(id))
+            if (!_securityPrincipleRepository.SecurityPrincipleExists(id, DbContext))
                 return NotFound();
 
-            var securityPrinciple = _mapper.Map<SecurityPrincipleDto>(_securityPrincipleRepository.GetSecurityPrincipleById(id));
+            var securityPrinciple = _mapper.Map<SecurityPrincipleDto>(_securityPrincipleRepository.GetSecurityPrincipleById(id, DbContext));
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -48,12 +48,12 @@ namespace Security_Principles_Web_API.Controllers
             return Ok(securityPrinciple);
         }
 
-        [HttpGet("{{displayName}}")]
+        [HttpGet("GetSecurityPrincipleByDisplayName")]
         [ProducesResponseType(200, Type = typeof(SecurityPrinciple))]
         [ProducesResponseType(400)]
-        public IActionResult GetSecurityPrincipleByDisplayName([FromQuery] string displayName)
+        public IActionResult GetSecurityPrincipleByDisplayName([FromQuery] string displayName, string DbContext)
         {
-            var securityPrinciple = _mapper.Map<SecurityPrincipleDto>(_securityPrincipleRepository.GetSecurityPrincipleByDisplayName(displayName));
+            var securityPrinciple = _mapper.Map<SecurityPrincipleDto>(_securityPrincipleRepository.GetSecurityPrincipleByDisplayName(displayName, DbContext));
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -61,12 +61,12 @@ namespace Security_Principles_Web_API.Controllers
             return Ok(securityPrinciple);
         }
 
-        [HttpGet("{{principleType}}")]
+        [HttpGet("GetSecurityPrincipleByType")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<SecurityPrinciple>))]
         [ProducesResponseType(400)]
-        public IActionResult GetSecurityPrinciplesByType([FromQuery] string principleType)
+        public IActionResult GetSecurityPrinciplesByType([FromQuery] string principleType, string DbContext)
         {
-            var securityPrinciples = _securityPrincipleRepository.GetSecurityPrinciplesByType(principleType);
+            var securityPrinciples = _securityPrincipleRepository.GetSecurityPrinciplesByType(principleType, DbContext);
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -76,15 +76,15 @@ namespace Security_Principles_Web_API.Controllers
 
         //Create.
 
-        [HttpPost]
+        [HttpPost()]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        public IActionResult CreateSecurityPrinciple([FromBody] SecurityPrincipleDto securityPrincipleCreate)
+        public IActionResult CreateSecurityPrinciple([FromBody] SecurityPrincipleDto securityPrincipleCreate, string DbContext)
         {
             if (securityPrincipleCreate == null)
                 return BadRequest(ModelState);
 
-            var securityPrinciple = _securityPrincipleRepository.GetSecurityPrinciples()
+            var securityPrinciple = _securityPrincipleRepository.GetSecurityPrinciples(DbContext)
                 .Where(s => s.displayName.Trim().ToUpper() == securityPrincipleCreate.displayName.ToUpper())
                 .FirstOrDefault();
 
@@ -99,7 +99,7 @@ namespace Security_Principles_Web_API.Controllers
 
             var securityPrincipleMap = _mapper.Map<SecurityPrinciple>(securityPrincipleCreate);
 
-            if (!_securityPrincipleRepository.CreateSecurityPrinciple(securityPrincipleMap))
+            if (!_securityPrincipleRepository.CreateSecurityPrinciple(securityPrincipleMap, DbContext))
             {
                 ModelState.AddModelError("", "Something went wrong when saving");
                 return StatusCode(500, ModelState);
@@ -115,7 +115,7 @@ namespace Security_Principles_Web_API.Controllers
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public IActionResult UpdateSecurityPrinciple(string displayName, [FromBody] SecurityPrincipleDto updatedSecurityPrinciple)
+        public IActionResult UpdateSecurityPrinciple(string displayName, [FromBody] SecurityPrincipleDto updatedSecurityPrinciple, string DbContext)
         {
             if (updatedSecurityPrinciple == null)
                 return BadRequest(ModelState);
@@ -123,7 +123,7 @@ namespace Security_Principles_Web_API.Controllers
             if (displayName != updatedSecurityPrinciple.displayName)
                 return BadRequest(ModelState);
 
-            if (_securityPrincipleRepository.SecurityPrincipleExists(displayName))
+            if (_securityPrincipleRepository.SecurityPrincipleExists(displayName, DbContext))
                 return NotFound("displayName already exists!");
 
             if (!ModelState.IsValid)
@@ -131,7 +131,7 @@ namespace Security_Principles_Web_API.Controllers
 
             var securityPrincipleMap = _mapper.Map<SecurityPrinciple>(updatedSecurityPrinciple);
 
-            if (!_securityPrincipleRepository.UpdateSecurityPrinciple(securityPrincipleMap))
+            if (!_securityPrincipleRepository.UpdateSecurityPrinciple(securityPrincipleMap, DbContext))
             {
                 ModelState.AddModelError("", "Something went wrong updating Security Principle");
                 return StatusCode(500, ModelState);
@@ -146,19 +146,19 @@ namespace Security_Principles_Web_API.Controllers
         [ProducesResponseType(400)]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
-        public IActionResult DeleteSecurityPrinciple(int Id)
+        public IActionResult DeleteSecurityPrinciple(int Id, string DbContext)
         {
-            if (!_securityPrincipleRepository.SecurityPrincipleExists(Id))
+            if (!_securityPrincipleRepository.SecurityPrincipleExists(Id, DbContext))
             {
                 return NotFound();
             }
 
-            var securityPrincipleToDelete = _securityPrincipleRepository.GetSecurityPrincipleById(Id);
+            var securityPrincipleToDelete = _securityPrincipleRepository.GetSecurityPrincipleById(Id, DbContext);
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            if (!_securityPrincipleRepository.DeleteSecurityPrinciple(securityPrincipleToDelete))
+            if (!_securityPrincipleRepository.DeleteSecurityPrinciple(securityPrincipleToDelete, DbContext))
             {
                 ModelState.AddModelError("", "Something went wrong deleting Security Principle");
             }
@@ -169,19 +169,19 @@ namespace Security_Principles_Web_API.Controllers
         [ProducesResponseType(400)]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
-        public IActionResult DeleteSecurityPrincipleByDisplayName(string displayName)
+        public IActionResult DeleteSecurityPrincipleByDisplayName(string displayName, string DbContext)
         {
-            if (!_securityPrincipleRepository.SecurityPrincipleExists(displayName))
+            if (!_securityPrincipleRepository.SecurityPrincipleExists(displayName, DbContext))
             {
                 return NotFound();
             }
 
-            var securityPrincipleToDelete = _securityPrincipleRepository.GetSecurityPrincipleByDisplayName(displayName);
+            var securityPrincipleToDelete = _securityPrincipleRepository.GetSecurityPrincipleByDisplayName(displayName, DbContext);
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            if (!_securityPrincipleRepository.DeleteSecurityPrinciple(securityPrincipleToDelete))
+            if (!_securityPrincipleRepository.DeleteSecurityPrinciple(securityPrincipleToDelete, DbContext))
             {
                 ModelState.AddModelError("", "Something went wrong deleting Security Principle");
             }

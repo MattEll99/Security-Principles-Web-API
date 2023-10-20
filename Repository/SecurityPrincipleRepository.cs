@@ -1,81 +1,84 @@
-﻿using Security_Principles_Web_API.Data;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic;
+using Security_Principles_Web_API.Data;
 using Security_Principles_Web_API.Interfaces;
 using Security_Principles_Web_API.Models;
 
 namespace Security_Principles_Web_API.Repository
 {
-    public class SecurityPrincipleRepository : ISecurityPrincipleRepository
+    public class SecurityPrincipleRepository:RepositoryBase, ISecurityPrincipleRepository
     {
-        private readonly DataContext _context;
-
-        public SecurityPrincipleRepository(DataContext context)
+        public SecurityPrincipleRepository(DataContext Scontext, TDataContext Tcontext) : base(Scontext, Tcontext)
         {
-            _context = context;
             
         }
-        public SecurityPrinciple GetSecurityPrincipleById(int id)
+
+        public SecurityPrinciple GetSecurityPrincipleById(int id, string DbContext)
         {
-            return _context.SecurityPrinciples.Where(s => s.Id == id).FirstOrDefault();
+            return GetDbContext(DbContext).SecurityPrinciples.Where(s => s.Id == id).FirstOrDefault();
         }
 
-        public SecurityPrinciple GetSecurityPrincipleByDisplayName(string displayName)
+        public SecurityPrinciple GetSecurityPrincipleByDisplayName(string displayName, string DbContext)
         {
-            return _context.SecurityPrinciples.Where(s => s.displayName == displayName).FirstOrDefault();
+            return GetDbContext(DbContext).SecurityPrinciples.Where(s => s.displayName == displayName).FirstOrDefault();
         }
 
-        public ICollection<SecurityPrinciple> GetSecurityPrinciples()
+        public ICollection<SecurityPrinciple> GetSecurityPrinciples(string DbContext)
         {
-            return _context.SecurityPrinciples.OrderBy(sp => sp.Id).ToList();
+            var content = GetDbContext(DbContext).SecurityPrinciples.OrderBy(sp => sp.Id).ToList();
+            return content;
         }
 
-        public bool SecurityPrincipleExists(int id)
+        public bool SecurityPrincipleExists(int id, string DbContext)
         {
-            return _context.SecurityPrinciples.Any(sp => sp.Id == id);
+            return GetDbContext(DbContext).SecurityPrinciples.Any(sp => sp.Id == id);
         }
 
-        public bool SecurityPrincipleExists(string displayName)
+        public bool SecurityPrincipleExists(string displayName, string DbContext)
         {
-            bool result = _context.SecurityPrinciples.Any(sp => sp.displayName == displayName);
-            return _context.SecurityPrinciples.Any(sp => sp.displayName == displayName);
+            bool result = GetDbContext(DbContext).SecurityPrinciples.Any(sp => sp.displayName == displayName);
+            return GetDbContext(DbContext).SecurityPrinciples.Any(sp => sp.displayName == displayName);
         }
 
-        public ICollection<SecurityPrinciple> GetSecurityPrinciplesByType(string type)
+        public ICollection<SecurityPrinciple> GetSecurityPrinciplesByType(string type, string DbContext)
         {
-            return _context.SecurityPrinciples.Where(s => s.principleType == type).ToList();
+            return GetDbContext(DbContext).SecurityPrinciples.Where(s => s.principleType == type).ToList();
         }
 
         //Create
-        public bool CreateSecurityPrinciple(SecurityPrinciple securityPrinciple)
+        public bool CreateSecurityPrinciple(SecurityPrinciple securityPrinciple, string DbContext)
         {
-            _context.Add(securityPrinciple);
-            return Save();
+            GetDbContext(DbContext).Add(securityPrinciple);
+            return Save(DbContext);
         }
 
-        public bool Save()
+        public bool Save(string DbContext)
         {
-            var saved = _context.SaveChanges();
+            var saved = GetDbContext(DbContext).SaveChanges();
             return saved > 0 ? true : false;
         }
 
         //Update
 
-        public bool UpdateSecurityPrinciple(SecurityPrinciple securityPrinciple)
+        public bool UpdateSecurityPrinciple(SecurityPrinciple securityPrinciple, string DbContext)
         {
-            _context.Update(securityPrinciple);
-            return Save();
+            GetDbContext(DbContext).Update(securityPrinciple);
+            return Save(DbContext);
         }
 
         //Delete
-        public bool DeleteSecurityPrinciple(SecurityPrinciple securityPrinciple)
+        public bool DeleteSecurityPrinciple(SecurityPrinciple securityPrinciple, string DbContext)
         {
-            _context.Remove(securityPrinciple);
-            return Save();
+            GetDbContext(DbContext).Remove(securityPrinciple);
+            return Save(DbContext);
         }
 
-        public bool DeleteSecurityPrincipleByDisplayName(SecurityPrinciple securityPrinciple)
+        public bool DeleteSecurityPrincipleByDisplayName(SecurityPrinciple securityPrinciple, string DbContext)
         {
-            _context.Remove(securityPrinciple);
-            return Save();
+            GetDbContext(DbContext).Remove(securityPrinciple);
+            return Save(DbContext);
         }
     }
 }

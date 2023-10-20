@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Security_Principles_Web_API.Data;
+using Security_Principles_Web_API.Interfaces;
 using Security_Principles_Web_API.Models;
 
 namespace Security_Principles_Web_API.Controllers
@@ -9,44 +11,34 @@ namespace Security_Principles_Web_API.Controllers
     [ApiController]
     public class vGroupMemberController : ControllerBase
     {
-        private readonly DataContext _context;
-        public vGroupMemberController(DataContext context)
+        private readonly IvGroupMemberRepository _vGroupMemberRepository;
+        private readonly IMapper _mapper;
+        public vGroupMemberController(IvGroupMemberRepository vGroupmemberRepository, IMapper mapper)
         {
-            _context = context;
+            _vGroupMemberRepository = vGroupmemberRepository;
+            _mapper = mapper;
         }
 
         [HttpGet("GetVGroupMembers")]
-        public IActionResult GetVGroupMembers()
+        public IActionResult GetVGroupMembers(string DbContext)
         {
-            var items = _context
-                           .VGroups
-                           .Select(x => new
-                           {
-                               gId = x.groupId,
-                               mId = x.memberId,
-                               gName = x.groupDisplayName,
-                               mName = x.memberDisplayName,
-                               mPType = x.memberPrincipleType
-                           });
-            return Ok(items);
+            var vGroupMembers =  _vGroupMemberRepository.GetVGroupMembers(DbContext);
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            return Ok(vGroupMembers);
         }
 
         [HttpGet("GetVGroupMembersByGroupName")]
-        public IActionResult GetVGroupMembersByGroupName(string groupDisplayName)
+        public IActionResult GetVGroupMembersByGroupName(string groupDisplayName, string DbContext)
         {
-            var items = _context
-                           .VGroups
-                           .Where(gdn => gdn.groupDisplayName == groupDisplayName)
-                           .Select(x => new
-                           {
-                               groupId = x.groupId,
-                               memberId = x.memberId,
-                               groupDisplayName = x.groupDisplayName,
-                               memberDisplayName = x.memberDisplayName,
-                               memberPrincipleType = x.memberPrincipleType
-                           }
-                           );
-            return Ok(items);
+            var vGroupMembers = _vGroupMemberRepository.GetVGroupMembersByGroupName(groupDisplayName, DbContext);
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            return Ok(vGroupMembers);
         }
     }
 }
